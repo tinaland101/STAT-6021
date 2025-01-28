@@ -1,0 +1,157 @@
+---
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+```{r}
+# Part A: 
+covid_dataset <- read.csv("UScovid.csv")
+
+# filter covid_dataset
+covid_dataset <- covid_dataset[covid_dataset$date == "2021-06-03" & covid_dataset$county != "Unknown", ]
+
+# removes "date" and "fips"
+covid_dataset <- covid_dataset[, !(names(covid_dataset) %in% c("date", "fips"))]
+
+# alphebectial order
+covid_dataset <- covid_dataset[order(covid_dataset$state, covid_dataset$county), ]
+
+
+head(covid_dataset)
+```
+
+
+```{r}
+# Part B: Death Rate column calulated from latest
+covid_dataset$death.rate <- round((covid_dataset$deaths / covid_dataset$cases) * 100, 2)
+
+head(covid_dataset)
+
+```
+
+
+
+```{r}
+# Part C: Top 10 countries with largest number of cases
+top_cases <- covid_dataset[order(covid_dataset$cases, decreasing = TRUE), ][1:10, c("state", "county", "cases", "deaths", "death.rate")]
+print(top_cases)
+```
+```{r}
+# Part D: Top 10 counties with the largest number of deaths
+top_deaths <- covid_dataset[order(covid_dataset$deaths, decreasing = TRUE), ][1:10, c("state", "county", "cases", "deaths", "death.rate")]
+print(top_deaths)
+```
+```{r}
+#Part E : Top 10 counties with the highest case fatality rates
+
+top_fatality <- covid_dataset[order(covid_dataset$death.rate, decreasing = TRUE), ][1:10, c("state", "county", "cases", "deaths", "death.rate")]
+
+print(top_fatality)
+```
+
+```{r}
+#Part F: Top 10 counties with the highest case fatality rates and at least 100,000 cases
+
+top_100k_cases <- covid_dataset[covid_dataset$cases >= 100000, ]
+
+top_fatality_100k <- top_100k_cases[order(top_100k_cases$death.rate, decreasing = TRUE), ][1:10, c("state", "county", "cases", "deaths", "death.rate")]
+
+print(top_fatality_100k)
+
+
+```
+```{r}
+# Part G: Albemarle, Virginia
+
+print(covid_dataset[covid_dataset$county == "Albemarle" & covid_dataset$state == "Virginia", c("county", "state", "cases", "deaths", "death.rate")])
+
+
+```
+```{r}
+# Part G: Charlottesville city, Virgnia
+
+print(covid_dataset[covid_dataset$county == "Charlottesville city" & covid_dataset$state == "Virginia", c("county", "state", "cases", "deaths", "death.rate")])
+```
+
+```{r}
+#Part A: State Level Anaylsis
+state_leveldata <- aggregate(cbind(cases, deaths) ~ state, data = covid_dataset, sum)
+
+
+state_leveldata <- state_leveldata[order(state_leveldata$state), ]
+
+
+head(state_leveldata)
+```
+```{r}
+# Part B: Calculate Case Fatality Rate at the state level
+state_leveldata$state.rate <- round((state_leveldata$deaths / state_leveldata$cases) * 100, 2)
+
+# Display the first 6 rows of the state-level data with the new death rate column
+head(state_leveldata)
+
+```
+
+```{r}
+#Part (c) - Case Fatality Rate for Virginia
+virginia_rate <- state_leveldata[state_leveldata$state == "Virginia", "state.rate"]
+print(virginia_rate)
+
+
+```
+```{r}
+# 3. Part D: Case Fatality Rate for Puerto Rico
+puerto_rico_rate <- state_leveldata[state_leveldata$state == "Puerto Rico", "state.rate"]
+print(puerto_rico_rate)
+```
+
+```{r}
+# Part E: The highest top 10 fatality rate
+top_states_fatality <- state_leveldata[order(state_leveldata$state.rate, decreasing = TRUE), ][1:10, ]
+print(top_states_fatality)
+
+```
+```{r}
+# Part F: States with the 10 lowest fatality 
+bottom_states_fatality <- state_leveldata[order(state_leveldata$state.rate, decreasing = FALSE), ][1:10, ]
+print(bottom_states_fatality)
+```
+```{r}
+#CSV export
+write.csv(state_leveldata, "stateCovid.csv", row.names = FALSE)
+```
+```
+```{r}
+
+
+```
+
+1.What is the case fatality rate in Virginia? the case fertility rate was 1.66
+
+2.What is the case fatality rate in Puerto Rico? The case fertility rate for Puerto Rico was 0. This was not in the dataset.
+
+3. Which states have the 10 highest case fatality rate? 
+Massachusetts	
+New Jersey
+New York
+Connecticut	
+District of Columbia
+Mississippi
+Pennsylvania
+Louisiana	
+New Mexico
+Maryland
+
+4.Which states have the 10 lowest case fatality rate?
+Alaska	
+Utah
+Virgin Islands	
+Vermont	
+Nebraska	
+Idaho	
+Northern Mariana Islands	
+Wisconsin	
+Wyoming
+Colorado
+
